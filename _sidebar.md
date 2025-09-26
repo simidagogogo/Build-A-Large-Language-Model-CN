@@ -7,7 +7,6 @@
   - [5.在无标记数据集上进行预训练](./cn-Book/5.在无标记数据集上进行预训练.md)
   - [6.用于分类任务的微调](./cn-Book/6.用于分类任务的微调.md)
   - [7.指令遵循微调](./cn-Book/7.指令遵循微调.md)
-
 - **附录**
 
   - [附录A. PyTorch简介](./cn-Book/附录A.PyTorch简介.md)
@@ -15,3 +14,4 @@
   - [附录C. 习题解答](./cn-Book/附录C.习题解答.md)
   - [附录D. 给训练循环添加高级技巧](./cn-Book/附录D.给训练循环添加高级技巧.md)
   - [附录E. 使用LoRA的参数高效微调](./cn-Book/附录E.使用LoRA的参数高效微调.md)
+  - [附录F.  Bonus Material](./cn-Book/附录F.BonusMaterial.md)

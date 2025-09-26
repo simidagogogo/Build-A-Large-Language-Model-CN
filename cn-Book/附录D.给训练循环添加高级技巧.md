@@ -6,7 +6,7 @@
 - [D.4 修改后的训练函数](#d4-修改后的训练函数)
 
 -----
-在本附录中，我们将增强第 5-7 章中介绍过的预训练和微调过程的训练函数。特别是前三部分内容，将涵盖学习率预热、余弦衰减和梯度裁剪等高级技巧。
+在本附录中，我们将增强第 5-7 章中介绍过的预训练和微调过程的训练函数。特别是前三部分内容，将涵盖 **学习率预热**、**余弦衰减** 和 **梯度裁剪** 等高级技巧。
 
 最后一部分将这些技巧整合到在第 5 章开发的训练函数中，并预训练一个大语言模型 (LLM)。
 
@@ -79,7 +79,7 @@ val_loader = create_dataloader_v1(
 
 ## D.1 学习率预热
 
-我们介绍的第一个技巧是学习率预热。实施学习率预热可以稳定复杂模型（如 LLM）的训练。这个过程包括将学习率从一个非常低的初始值 (initial_lr) 逐渐增加到用户指定的最大值 (peak_lr)。以较小的权重更新开始训练可以降低模型在其训练阶段遇到大的、不稳定的更新的风险。
+我们介绍的第一个技巧是学习率预热。实施学习率预热可以**稳定复杂模型（如 LLM）的训练**。这个过程包括 将学习率从一个**非常低**的初始值 (initial_lr) 逐渐增加到用户指定的**最大值** (peak_lr)。以较小的权重更新开始训练可**以降低模型在其训练阶段遇到大的、不稳定的更新的风险**。
 
 假设我们计划以 15 个 epoch 训练一个 LLM，初始学习率为 0.0001，并将其增加到最大学习率 0.01。此外，我们定义了 20 个预热步骤，以便在前 20 个训练步骤中将初始学习率从 0.0001 增加到 0.01：
 
@@ -95,29 +95,25 @@ warmup_steps = 20
 ```python
 optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.1)
 lr_increment = (peak_lr - initial_lr) / warmup_steps         #A
-
 global_step = -1
 track_lrs = []
-
 for epoch in range(n_epochs):                                #B
     for input_batch, target_batch in train_loader:
         optimizer.zero_grad()
         global_step += 1
-        
         if global_step < warmup_steps:                       #C
         		lr = initial_lr + global_step * lr_increment
         else:
        		 lr = peak_lr
-            
         for param_group in optimizer.param_groups:           #D
         		param_group["lr"] = lr
         track_lrs.append(optimizer.param_groups[0]["lr"])    #E
         
-        
-#A 此增量决定了在 20 个预热步骤中的每一步，我们将 initial_lr 增加多少。
-#B 执行一个典型的训练循环，在每个 epoch 中遍历训练 loader 中的批次。
-#C 如果我们仍在预热阶段，则更新学习率。
-#D 将计算出的学习率应用于优化器。
+
+#A 此增量决定了在20个预热步骤中的每一步，我们将initial_lr增加多少
+#B 执行一个典型的训练循环，在每个epoch中遍历训练loader中的批次
+#C 如果我们仍在预热阶段，则更新学习率
+#D 将计算出的学习率应用于优化器
 #E 在一个完整的训练循环中，损失和模型更新将在此处计算，为了简单起见，本示例中省略了这些。
 ```
 
@@ -135,20 +131,21 @@ plt.show()
 结果图如图 D.1 所示。
 
 <div style="text-align: center;">
-    <img src="Image/AppendixD/D.1.png" width="75%" />
+    <img src="../Image/AppendixD/D.1.png" width="75%" />
 </div>
+
 
 如图 D.1 所示，学习率从一个较低的值开始，并在 20 步内逐步增加，直到在 20 步后达到最大值。
 
-在下一节中，我们将进一步修改学习率，使其在达到最大学习率后下降，这有助于进一步改进模型训练。
+在下一节中，我们将进一步修改学习率，使其在**达到最大学习率后下降**，这有助于进一步改进模型训练。
 
 
 
 ## D.2 余弦衰减
 
-另一种广泛应用于训练复杂深度神经网络和 LLM 的技术是余弦衰减。此方法在整个训练周期中调整学习率，使其在预热阶段后遵循余弦曲线。
+另一种广泛应用于训练复杂深度神经网络和 LLM 的技术是**余弦衰减**。此方法在整个训练周期中调整学习率，使其**在预热阶段后**遵循**余弦曲线**。
 
-在其流行的变体中，余弦衰减将学习率降低（或衰减）至接近于零，模仿半个余弦周期的轨迹。余弦衰减中学习率的逐渐降低旨在减缓模型更新其权重的速度。这一点非常重要，因为它有助于最大限度地降低在训练过程中越过最小损失值的风险，这对于确保训练在其后期阶段的稳定性至关重要。
+在其流行的变体中，余弦衰减将学习率降低（或衰减）至接近于零，模仿半个余弦周期的轨迹。余弦衰减中学习率的逐渐降低旨在**减缓模型更新其权重的速度**。这一点非常重要，因为它有助于最大限度地降低在训练过程中**越过最小损失值的风险**，这对于确保训练在其后期阶段的稳定性至关重要。
 
 我们可以修改上一节中的训练循环模板，通过以下方式添加余弦衰减：
 
@@ -164,12 +161,10 @@ for epoch in range(n_epochs):
     for input_batch, target_batch in train_loader:
         optimizer.zero_grad()
         global_step += 1
-        
         if global_step < warmup_steps:
        			lr = initial_lr + global_step * lr_increment
         else:
-            progress = ((global_step - warmup_steps) /
-                        (total_training_steps - warmup_steps))
+            progress = (global_step - warmup_steps) / (total_training_steps - warmup_steps)
             lr = min_lr + (peak_lr - min_lr) * 0.5 * (1 + math.cos(math.pi * progress))
         
         for param_group in optimizer.param_groups:
@@ -189,24 +184,25 @@ plt.show()
 学习率曲线如图 D.2 所示。
 
 <div style="text-align: center;">
-    <img src="Image/AppendixD/D.2.png" width="75%" />
+    <img src="../Image/AppendixD/D.2.png" width="50%" />
 </div>
 
-如图 D.2 所示，学习率以线性预热阶段开始，在前 20 步内增加，直到在 20 步后达到最大值。在 20 步线性预热之后，余弦衰减开始起作用，逐渐降低学习率，直到达到最小值。
+
+如图 D.2 所示，学习率以**线性预热**阶段开始，在前 20 步内增加，直到在 20 步后达到最大值。在 20 步线性预热之后，**余弦衰减**开始起作用，逐渐降低学习率，直到达到最小值。
 
 
 
 ## D.3 梯度裁剪
 
-在本节中，我们将介绍梯度裁剪，这是另一种用于增强 LLM 训练期间稳定性的重要技术。该方法涉及设置一个阈值，当梯度超过该阈值时，会被缩小到预定的最大幅度。这个过程确保了反向传播期间模型参数的更新保持在一个可控的范围内。
+在本节中，我们将介绍梯度裁剪，这是另一种用于增强 LLM **训练期间稳定性**的重要技术。该方法涉及设置一个阈值，当梯度超过该阈值时，会被缩小到**预定的最大幅度**。这个过程确保了反向传播期间模型参数的更新保持在一个**可控的范围内**。
 
-例如，在 PyTorch 的 `clip_grad_norm_` 函数中应用 `max_norm=1.0` 设置可以确保梯度的范数不超过 1.0。这里，“范数”一词表示梯度向量在模型参数空间中的长度或大小的度量，具体指的是 L2 范数，也称为欧几里得范数。
+例如，在 PyTorch 的 `clip_grad_norm_` 函数中应用 `max_norm=1.0` 设置可以确保梯度的范数不超过 1.0。这里，“范数”一词表示梯度向量在模型参数空间中的长度或大小的度量，具体指的是 **L2 范数**，也称为欧几里得范数。
 
 用数学术语来说，对于一个由分量组成的向量 v = [v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>n</sub>]，L2 范数描述为：
 
-$$|v|\_{2}=\sqrt{v_{1}^{2}+v_{2}^{2}+\ldots+v_{n}^{2}}$$
+$$|v|_{2}=\sqrt{v_{1}^{2}+v_{2}^{2}+\ldots+v_{n}^{2}}$$
 
-这种计算方法也适用于矩阵。例如，考虑以下梯度矩阵：
+这种计算方法也适用于矩阵。例如，考虑以下**梯度矩阵**：
 
 $$G=\left[\begin{array}{ll}
 1 & 2 \\
@@ -217,7 +213,7 @@ $$G=\left[\begin{array}{ll}
 
 $$|G|_{2}=\sqrt{1^{2}+2^{2}+2^{2}+4^{2}}=\sqrt{25}=5$$
 
-鉴于 |G|<sub>2</sub> = 5 超过了我们的最大范数 1，我们需缩小梯度以确保它们的范数恰好等于 1。这是通过一个缩放因子实现的，该因子计算为 max_norm/|G|<sub>2</sub> = 1/5。因此，调整后的梯度矩阵 G' 变为：
+鉴于 |G|<sub>2</sub> = 5 超过了我们的最大范数 1，我们需缩小梯度以确保它们的范数恰好等于 1。这是通过一个**缩放因子**实现的，该因子计算为 max_norm/|G|<sub>2</sub> = 1/5。因此，调整后的梯度矩阵 G' 变为：
 
 $$G^{\prime}=\frac{1}{5} \times G\left[\begin{array}{ll}
 1 / 1 & 2 / 5 \\
@@ -251,6 +247,25 @@ def find_highest_gradient(model):
 print(find_highest_gradient(model))
 ```
 
+> 为什么用 `.data`？
+>
+> 1. **历史原因**：早期 PyTorch 推荐用 `.data` 访问原始数据，避免对梯度张量的操作被 autograd 系统追踪，从而不会干扰梯度的反向传播计算。
+>
+> 2. **效率原因**：直接访问底层数据进行只读操作会更高效。
+>
+> 3. **副作用风险**：对 `.data` 的写操作会跳过 autograd 检查，容易导致 BUG。只读通常没太大问题，但现在推荐用 `param.grad.detach()` 代替。
+>
+>    ```py
+>    grad_values = param.grad.detach().flatten()
+>    ```
+>
+> 总结
+>
+> - 用 `.data` 是为了不让操作影响 autograd 计算图，通常用于只读访问梯度数据。
+> - 现在建议用 `.detach()` 替代 `.data`，以避免潜在的 BUG 和副作用。
+>
+> 如果你只是**读取**梯度，不做任何修改，`.data` 和 `.detach()` 都可以用，但 `.detach()` 更推荐。
+
 以上代码识别出的最大梯度值如下：
 
 ```python
@@ -283,8 +298,11 @@ tensor(0.0166)
 ```python
 from previous_chapters import evaluate_model, generate_and_print_sample
 
-def train_model(model, train_loader, val_loader, optimizer, device, n_epochs,
-								eval_freq, eval_iter, start_context, warmup_steps=10,initial_lr=3e-05, min_lr=1e-6):
+def train_model(model, train_loader, val_loader, 
+                optimizer, device, n_epochs,
+								eval_freq, eval_iter, 
+                start_context, 
+                warmup_steps=10, initial_lr=3e-05, min_lr=1e-6):
 		train_losses, val_losses, track_tokens_seen, track_lrs = [], [], [], []
 		tokens_seen, global_step = 0, -1
     
@@ -297,14 +315,11 @@ def train_model(model, train_loader, val_loader, optimizer, device, n_epochs,
         for input_batch, target_batch in train_loader:
             optimizer.zero_grad()
             global_step += 1
-            
             if global_step < warmup_steps:                #D
-           		 lr = initial_lr + global_step * lr_increment
+                lr = initial_lr + global_step * lr_increment
             else:
-                progress = ((global_step - warmup_steps) /
-                            (total_training_steps - warmup_steps))
-                lr = min_lr + (peak_lr - min_lr) * 0.5 * (
-                    1 + math.cos(math.pi * progress))
+                progress = (global_step - warmup_steps) / (total_training_steps - warmup_steps)
+                lr = min_lr + (peak_lr - min_lr) * 0.5 * (1 + math.cos(math.pi * progress))
                 
             for param_group in optimizer.param_groups:    #E
                param_group["lr"] = lr
@@ -319,20 +334,14 @@ def train_model(model, train_loader, val_loader, optimizer, device, n_epochs,
             tokens_seen += input_batch.numel()
             
             if global_step % eval_freq == 0:
-                train_loss, val_loss = evaluate_model(
-                    model, train_loader, val_loader,
-                    device, eval_iter
+                train_loss, val_loss = evaluate_model(model, train_loader, val_loader, device, eval_iter
                 )
                 train_losses.append(train_loss)
                 val_losses.append(val_loss)
                 track_tokens_seen.append(tokens_seen)
                 print(f"Ep {epoch+1} (Iter {global_step:06d}): "
                 			f"Train loss {train_loss:.3f}, Val loss {val_loss:.3f}")
-                
-    generate_and_print_sample(
-        model, train_loader.dataset.tokenizer,
-        device, start_context
-    )
+    generate_and_print_sample(model, train_loader.dataset.tokenizer, device, start_context)
     
 return train_losses, val_losses, track_tokens_seen, track_lrs
 
@@ -381,7 +390,7 @@ vindicated--and by me!" He laughed again, and threw back his head to look up at 
 sketch of the donkey. "There were days when I
 ```
 
-与第 5 章类似，由于数据集非常小，并且我们对其进行了多次迭代，因此模型在几个 epoch 后开始过拟合。然而，我们可以看到该函数正在工作，因为它最小化了训练集损失。
+与第 5 章类似，由于数据集非常小，并且我们对其进行了多次迭代，因此模型在几个 epoch 后开始过拟合。然而，我们可以看到该函数正在工作，因为它**最小化了训练集损失**。
 
-这里鼓励读者在更大的文本数据集上训练模型，并将使用这种更复杂的训练函数获得的结果与第 5 章中使用的 `train_model_simple` 函数获得的结果进行比较。
+这里鼓励读者在**更大的文本数据集**上训练模型，并将使用这种更复杂的训练函数获得的结果与第 5 章中使用的 `train_model_simple` 函数获得的结果进行比较。
 
