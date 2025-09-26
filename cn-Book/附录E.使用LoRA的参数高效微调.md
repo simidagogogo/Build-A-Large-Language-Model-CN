@@ -11,6 +11,8 @@
 
 -----
 
+
+
 ## E.1 LoRA 简介
 
 LoRA，即低秩适应，是一种**仅调整模型权重参数的一小部分**，就可以让预训练模型更好地适应特定（通常较小）数据集的技术。“低秩”指的是将模型调整限制在总权重参数空间的一个**较小维度子空间**的数学概念，这有效地捕获了训练期间权重参数变化的**最具影响力的方向**。
@@ -49,7 +51,7 @@ W<sub>updated</sub> = W + AB
 </div>
 
 
-如果你仔细观察，你可能会注意到图 E.1 中完整微调和 LoRA 的视觉表示与之前呈现的公式略有不同。这种差异归因于**矩阵乘法的分配律**，该定律允许我们分离原始权重和更新后的权重，而不是将它们组合在一起。例如，在进行常规微调的情况下，以 x 作为输入数据，我们可以将计算按如下表示:
+如果你仔细观察，你可能会注意到图 E.1 中完整微调和 LoRA 的视觉表示与之前呈现的公式略有不同。这种差异归因于**矩阵乘法的分配律**，该定律允许我们**分离** 原始权重和更新后的权重，而不是将它们 **组合** 在一起。例如，在进行常规微调的情况下，以 x 作为输入数据，我们可以将计算按如下表示:
 
 x ( W + ΔW) = xW + xΔW
 
@@ -57,7 +59,7 @@ x ( W + ΔW) = xW + xΔW
 
 x ( W + AB) = xW + xAB
 
-除了能减少训练期间需要更新的权重数量之外，将 LoRA 权重矩阵与原始模型权重分离的能力使得 LoRA 的实用性更强。这意味着预训练模型的权重可以**保持不变**，而 LoRA 权重矩阵在训练后使用模型时则可以被**动态地应用**。
+除了能减少训练期间需要更新的权重数量之外，将 **LoRA 权重矩阵** 与 **原始模型权重** 分离的能力使得 LoRA 的实用性更强。这意味着预训练模型的权重可以 **保持不变**，而 LoRA 权重矩阵在训练后使用模型时则可以被 **动态地应用**。
 
 > [!TIP]
 >
@@ -65,7 +67,7 @@ x ( W + AB) = xW + xAB
 >
 > 想象你已经拥有一个非常庞大的、功能强大的模型，它就像一个已经掌握了很多知识和技能的“超级大脑”。现在你想让这个“超级大脑”专注于解决某个特定的问题，比如识别图片中的猫。
 >
-> **传统的微调**就像是直接调整这个“超级大脑”内部的很多连接和参数，让它更擅长识别猫。这个过程可能会比较复杂，需要大量的计算资源，而且可能会影响它之前学到的其他知识。
+> **传统的微调**就像是直接调整这个“超级大脑”内部的很多连接和参数，让它更擅长识别猫。这个过程可能会比较复杂，需要大量的计算资源，而且可能会**影响它之前学到的其他知识**。
 >
 > **LoRA 的做法则更聪明：**
 >
@@ -73,12 +75,12 @@ x ( W + AB) = xW + xAB
 >
 > 关键在于，这些“插件”是**独立**于“超级大脑”本身的核心知识（原始模型权重）的。这意味着：
 >
-> 1. **原始的“超级大脑”保持不变：** 它仍然拥有之前学到的所有通用知识。你不需要担心为了让它识别猫而忘记了其他技能。
+> 1. **原始的“超级大脑”保持不变：** 它仍然拥有之前学到的所有**通用知识**。你不需要担心为了让它识别猫而忘记了其他技能。
 > 2. **“插件”很小，训练起来更快更省资源：** 因为 LoRA 只训练这些新增的“插件”，它们的参数量比原始模型小得多，所以训练起来更快，需要的计算资源也更少。
 > 3. **可以灵活地切换任务：** 想象一下，你不仅想让这个“超级大脑”识别猫，还想让它识别狗。使用 LoRA，你可以在同一个原始模型的基础上，训练出另一个专门识别狗的“插件”。当你需要识别猫时，就加载猫的“插件”；需要识别狗时，就加载狗的“插件”。原始的“超级大脑”本身不需要改变。
-> 4. **部署和存储更方便：** 因为原始模型很大，而 LoRA 的“插件”很小，所以你只需要存储原始模型一次，然后为不同的任务存储不同的“插件”就可以了，这样可以节省大量的存储空间。
+> 4. **部署和存储更方便：** 因为原始模型很大，而 LoRA 的“插件”很小，所以你只需要存储原始模型一次，然后为不同的任务存储不同的“插件”就可以了，这样可以**节省大量的存储空间**。
 
-在实践中，将 LoRA 权重分开非常有用，因为它可以在不需要存储 LLM 的多个完整版本的情况下实现模型定制。这显著降低了存储需求并提高了可伸缩性，因为当为每个特定的客户或应用程序定制 LLM 时，只需要调整和保存较小的 LoRA 矩阵。
+在实践中，将 LoRA 权重分开非常有用，因为它可以在不需要存储 LLM 的多个**完整版本**的情况下实现**模型定制**。这显著降低了**存储需求**并提高了可伸缩性，因为当为每个特定的客户或应用程序定制 LLM 时，只需要**调整和保存较小的 LoRA 矩阵**。
 
 目前我们已经讨论了 LoRA 的全部内容，在接下来的章节中，让我们看看如何使用它来微调 LLM 以进行垃圾邮件分类，类似于第 6 章中的微调示例。
 
@@ -97,6 +99,7 @@ x ( W + AB) = xW + xAB
 
 from pathlib import Path
 import pandas as pd
+
 from ch06 import (
     download_and_unzip_spam_data,
     create_balanced_dataset,
@@ -107,7 +110,6 @@ url = "https://archive.ics.uci.edu/static/public/228/sms+spam+collection.zip"
 zip_path = "sms_spam_collection.zip"
 extracted_path = "sms_spam_collection"
 data_file_path = Path(extracted_path) / "SMSSpamCollection.tsv"
-
 download_and_unzip_spam_data(url, zip_path, extracted_path, data_file_path)
 
 df = pd.read_csv(data_file_path, sep="\t", header=None, names=["Label", "Text"])
@@ -132,10 +134,8 @@ from previous_chapters import SpamDataset
 
 tokenizer = tiktoken.get_encoding("gpt2")
 train_dataset = SpamDataset("train.csv", max_length=None, tokenizer=tokenizer)
-val_dataset = SpamDataset("validation.csv", max_length=train_dataset.max_length,
-tokenizer=tokenizer)
-test_dataset = SpamDataset("test.csv", max_length=train_dataset.max_length,
-tokenizer=tokenizer)
+val_dataset = SpamDataset("validation.csv", max_length=train_dataset.max_length, tokenizer=tokenizer)
+test_dataset = SpamDataset("test.csv", max_length=train_dataset.max_length, tokenizer=tokenizer)
 ```
 
 在创建 PyTorch 数据集对象之后，我们开始实例化数据加载器：
@@ -147,7 +147,6 @@ from torch.utils.data import DataLoader
 
 num_workers = 0
 batch_size = 8
-
 torch.manual_seed(123)
 
 train_loader = DataLoader(
@@ -224,17 +223,25 @@ CHOOSE_MODEL = "gpt2-small (124M)"
 INPUT_PROMPT = "Every effort moves"
 
 BASE_CONFIG = {
-    "vocab_size": 50257, # Vocabulary size
+    "vocab_size": 50257, 		# Vocabulary size
     "context_length": 1024, # Context length
-    "drop_rate": 0.0, # Dropout rate
-    "qkv_bias": True # Query-key-value bias
+    "drop_rate": 0.0, 			# Dropout rate
+    "qkv_bias": True 				# Query-key-value bias
 }
 
 model_configs = {
-    "gpt2-small (124M)": {"emb_dim": 768, "n_layers": 12, "n_heads": 12},
-    "gpt2-medium (355M)": {"emb_dim": 1024, "n_layers": 24, "n_heads": 16},
-    "gpt2-large (774M)": {"emb_dim": 1280, "n_layers": 36, "n_heads": 20},
-    "gpt2-xl (1558M)": {"emb_dim": 1600, "n_layers": 48, "n_heads": 25},
+    "gpt2-small (124M)": {
+      "emb_dim": 768, "n_layers": 12, "n_heads": 12
+    },
+    "gpt2-medium (355M)": {
+      "emb_dim": 1024, "n_layers": 24, "n_heads": 16
+    },
+    "gpt2-large (774M)": {
+      "emb_dim": 1280, "n_layers": 36, "n_heads": 20
+    },
+    "gpt2-xl (1558M)": {
+      "emb_dim": 1600, "n_layers": 48, "n_heads": 25
+    },
 }
 
 BASE_CONFIG.update(model_configs[CHOOSE_MODEL])
@@ -257,7 +264,6 @@ from previous_chapters import (
 )
 
 text_1 = "Every effort moves you"
-
 token_ids = generate_text_simple(
     model=model,
     idx=text_to_token_ids(text_1, tokenizer),
@@ -268,7 +274,7 @@ token_ids = generate_text_simple(
 print(token_ids_to_text(token_ids, tokenizer))
 ```
 
-如下所示，该模型生成了连贯的文本，这表明模型权重已正确加载：
+如下所示，该模型生成了连贯的文本，这表明**模型权重已正确加载**：
 
 ```python
 Every effort moves you forward.
@@ -317,8 +323,9 @@ Test accuracy: 48.75%
 该层可以接受一个输入并计算相应的输出，如图 E.2 所示。
 
 <div style="text-align: center;">
-    <img src="Image/AppendixE/E.2.png" width="75%" />
+    <img src="../Image/AppendixE/E.2.png" width="75%" />
 </div>
+
 
 我们可以通过以下代码来实现图 E.2 中描述的 LoRA 层：
 
@@ -343,9 +350,49 @@ class LoRALayer(torch.nn.Module):
 #A 使用与 PyTorch 中线性层相同的初始化方式
 ```
 
-在以上代码中，秩决定了矩阵 A 和 B 的内部维度。本质上，这一设置确定了 LoRA 引入的额外参数的数量，用于在模型的适应性和其效率之间通过使用的参数数量进行平衡。
+> Q：在 `torch.nn.init.kaiming_uniform_` 这个函数中，参数 `a` 是什么？
+>
+> A：参数 `a` 是**负斜率参数**（negative slope），用于支持带有负斜率的激活函数，比如 Leaky ReLU。它的数学含义是激活函数：
+>
+> -  f(x)=x (当 x>0) 
+> - f(x)=ax (当 x≤0) 
 
-另一个重要的设置 alpha，用作低秩适应输出的缩放因子。它主要决定了来自适应层的输出对原始层输出的影响程度。这可以看作是一种调节低秩适应对层输出影响的方式。
+> Q：为什么self.A和self.B的权重初始化方式不同？
+>
+> A：这涉及到参数初始化的底层设计逻辑。下面详细解释：
+>
+> 1. **self.A 的初始化方式**
+>
+> - 这里 `self.A` 用的是 **Kaiming（He）均匀初始化**。
+> - 这种初始化方式主要用于带有 ReLU 类激活函数的线性层，以保持前向传播时的方差不变，防止梯度消失或爆炸。
+> - 由于 `self.A` 是第一个可学习矩阵——直接与输入相乘，所以它的初始化会影响模型的信号流动和训练稳定性。
+> - 选择 Kaiming 初始化，可以让输入信号的方差更好地保持一致。
+>
+> 2. **self.B 的初始化方式**
+>
+> - `self.B` 直接初始化为 **全零**。
+> - 这么做的原因通常是 LoRA（Low Rank Adaptation）设计哲学：
+>   - LoRA 的初衷是**在原有模型的基础上加一个低秩的微调路径**，刚开始时，这一条路径应该对模型**没有影响**。
+>   - 把 `self.B` 初始化成全零，意味着一开始 LoRA 分支输出为零，模型预测就是**原模型的输出**，不影响主干网络。
+>   - 这样做可以 **保证微调刚开始时不会破坏原模型的表达能力**，让 LoRA 只在**后续训练中逐渐学到有用的偏移**。
+>
+> 3. **对比总结**
+>
+> - **self.A** 用 Kaiming 初始化，保证**梯度和信号流稳定**，符合深度学习初始化的“良好实践”。
+> - **self.B** 用 全零初始化，保证 LoRA 支路初始时不影响主模型输出，符合微调设计理念。
+>
+> ------
+>
+> 类似设计的常见性
+>
+> 这种做法在 LoRA、Adapter 等参数高效微调方法中很常见：
+> **新增分支参数一开始输出为零，训练中逐步“介入”主干网络**，既安全又高效。
+
+
+
+在以上代码中，秩决定了矩阵 A 和 B 的内部维度。本质上，这一设置确定了 LoRA 引入的**额外参数的数量**，用于在模型的**适应性** 和其 **效率** 之间通过使用的参数数量进行平衡。
+
+另一个重要的设置 alpha，用作低秩适应输出的**缩放因子**。它主要决定了来自适应层的输出对原始层输出的影响程度。这可以看作是一种调节低秩适应**对层输出影响**的方式。
 
 > [!TIP]
 >
@@ -364,26 +411,27 @@ class LoRALayer(torch.nn.Module):
 >
 > + **LoRA “小工具” 输出的音量调节器:** Alpha 可以看作是一个调节 LoRA 带来的改变有多大的“音量旋钮”。它是一个数字，用来乘以 LoRA “小工具” 的输出结果。
 > + **控制适应层对原始层的影响:** Alpha 的大小决定了 LoRA 学习到的调整对原始模型输出的影响程度。
->   + **Alpha 大一点:** LoRA 带来的改变会更明显，模型会更倾向于学习新的任务。
->   + **Alpha 小一点:** LoRA 带来的改变会更微妙，模型更多地还是依赖于它原本学到的知识，只是做一些微小的调整。
+>   + **Alpha 大一点:** LoRA 带来的改变会更明显，模型会**更倾向于学习新的任务**。
+>   + **Alpha 小一点:** LoRA 带来的改变会更微妙，模型更多地还是依赖于它原本学到的知识，只是做一些**微小的调整**。
 >   + **就像调味品:** Alpha 就像你做菜时放的盐。盐放多了（Alpha 大了），菜的味道变化就大；盐放少了（Alpha 小了），菜的味道变化就小。你需要根据你的口味来调整。
 >
 > **总结一下：**
 >
-> + **秩 (Rank)** 决定了 LoRA 可以学习多少新的信息，以及需要多少额外的参数。
-> + **Alpha** 决定了 LoRA 学习到的信息对最终结果的影响有多大。
+> + **秩 (Rank)** 决定了 LoRA 可以**学习多少新的信息**，以及需要多少额外的参数。
+> + **Alpha** 决定了 LoRA 学习到的信息**对最终结果的影响**有多大。
 >
 > 这两个参数都需要根据具体的任务和模型进行调整，以达到最佳的性能和效率。
 
 我们目前实现的 `LoRALayer` 类使我们能够转换层的输入。
 
-在 LoRA 中，典型的目标是替换现有的线性层，从而允许将权重更新直接应用于预先存在的预训练权重，如图 E.3 所示。
+在 LoRA 中，典型的目标是替换现有的线性层，从而允许将 权重更新 直接应用于 预先存在的预训练权重，如图 E.3 所示。
 
 <div style="text-align: center;">
-    <img src="Image/AppendixE/E.3.png" width="75%" />
+    <img src="../Image/AppendixE/E.3.png" width="75%" />
 </div>
 
-为了集成图 E.3 所示的原始线性层权重，我们现在创建一个 `LinearWithLoRA` 层。该层利用了之前实现的 `LoRALayer`，旨在替换神经网络中现有的线性层，例如 `GPTModel` 中的自注意力模块或前馈模块：
+
+为了集成图 E.3 所示的原始线性层权重，我们现在创建一个 `LinearWithLoRA` 层。该层利用了之前实现的 `LoRALayer`，旨在**替换神经网络中现有的线性层**，例如 `GPTModel` 中的 **自注意力模块** 或 **前馈模块**：
 
 ```python
 # Listing E.6 A LinearWithLora layer to replace Linear layers
@@ -392,19 +440,17 @@ class LinearWithLoRA(torch.nn.Module):
     def __init__(self, linear, rank, alpha):
         super().__init__()
         self.linear = linear
-        self.lora = LoRALayer(
-            linear.in_features, linear.out_features, rank, alpha
-        )
+        self.lora = LoRALayer(linear.in_features, linear.out_features, rank, alpha)
 
     def forward(self, x):
    		 return self.linear(x) + self.lora(x)
 ```
 
-前面的代码将一个标准的线性层与 `LoRALayer` 结合在一起。`forward` 方法通过将原始线性层和 LoRA 层的输出相加来计算最终输出。
+前面的代码将一个标准的线性层与 `LoRALayer` 结合在一起。`forward` 方法通过将原始线性层和 LoRA 层的**输出相加**来计算最终输出。
 
-由于权重矩阵 B（在 `LoRALayer` 中是 `self.B`）被初始化为零值，矩阵 A 和 B 的乘积将得到一个零矩阵。这确保了该乘法不会改变原始权重，因为加零不会改变它们。
+由于权重矩阵 B（在 `LoRALayer` 中是 `self.B`）被初始化为零值，矩阵 A 和 B 的乘积将得到一个**零矩阵**。这确保了该乘法不会改变原始权重，因为加零不会改变它们。
 
-为了将 LoRA 应用于之前定义的 `GPTModel`，我们还引入了一个 `replace_linear_with_lora` 函数。该函数会将模型中所有现有的线性层替换为新创建的 `LinearWithLoRA` 层：
+为了将 LoRA 应用于之前定义的 `GPTModel`，我们还引入了一个 `replace_linear_with_lora` 函数。该函数会将模型中所有现有的线性层**替换**为新创建的 `LinearWithLoRA` 层：
 
 ```python
 def replace_linear_with_lora(model, rank, alpha):
@@ -422,8 +468,9 @@ def replace_linear_with_lora(model, rank, alpha):
 我们现在已经实现了所有必要的代码，以将 `GPTModel` 中的线性层替换为新开发的 `LinearWithLoRA` 层，从而实现参数高效微调。在接下来的章节中，我们将把 `LinearWithLoRA` 升级应用于 `GPTModel` 的多头注意力模块、前馈模块和输出层中的所有线性层，如图 E.4 所示。
 
 <div style="text-align: center;">
-    <img src="Image/AppendixE/E.4.png" width="75%" />
+    <img src="../Image/AppendixE/E.4.png" width="75%" />
 </div>
+
 
 在我们应用如图 E.4 所示的 `LinearWithLoRA` 层升级之前，我们首先需要冻结原始模型的参数：
 
@@ -615,8 +662,9 @@ plot_values(epochs_tensor, examples_seen_tensor, train_losses, val_losses, label
 结果如图 E.5 所示。
 
 <div style="text-align: center;">
-    <img src="Image/AppendixE/E.5.png" width="75%" />
+    <img src="../Image/AppendixE/E.5.png" width="75%" />
 </div>
+
 
 除了基于图 E.5 中显示的损失曲线评估模型外，我们还要计算在完整训练集、验证集和测试集上的准确率（在训练过程中，我们通过 `eval_iter=5` 设置从 5 个批次中近似计算了训练集和验证集的准确率）：
 
