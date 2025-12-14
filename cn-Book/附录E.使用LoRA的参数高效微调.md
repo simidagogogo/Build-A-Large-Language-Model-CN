@@ -465,7 +465,7 @@ def replace_linear_with_lora(model, rank, alpha):
 #B 将相同的函数递归地应用于子模块
 ```
 
-我们现在已经实现了所有必要的代码，以将 `GPTModel` 中的线性层替换为新开发的 `LinearWithLoRA` 层，从而实现参数高效微调。在接下来的章节中，我们将把 `LinearWithLoRA` 升级应用于 `GPTModel` 的多头注意力模块、前馈模块和输出层中的所有线性层，如图 E.4 所示。
+我们现在已经实现了所有必要的代码，以将 `GPTModel` 中的线性层替换为新开发的 `LinearWithLoRA` 层，从而实现**参数高效微调**。在接下来的章节中，我们将把 `LinearWithLoRA` 升级应用于 `GPTModel` 的多头注意力模块、前馈模块和输出层中的**a所有线性层**，如图 E.4 所示。
 
 <div style="text-align: center;">
     <img src="../Image/AppendixE/E.4.png" width="75%" />
